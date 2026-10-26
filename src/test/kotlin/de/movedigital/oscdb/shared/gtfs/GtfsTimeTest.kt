@@ -3,6 +3,7 @@ package de.movedigital.oscdb.shared.gtfs
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import java.util.Locale
 
 class GtfsTimeTest {
     @Test
@@ -16,6 +17,22 @@ class GtfsTimeTest {
     fun formats() {
         assertEquals("25:00:00", GtfsTime.format(90000))
         assertEquals("02:58:42", GtfsTime.format(10722))
+    }
+
+    @Test
+    fun formatsWithAsciiDigitsUnderAnyDefaultLocale() {
+        val saved = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.forLanguageTag("ar-EG"))
+            assertEquals("25:00:00", GtfsTime.format(90000))
+        } finally {
+            Locale.setDefault(saved)
+        }
+    }
+
+    @Test
+    fun formatRejectsNegative() {
+        assertThrows<IllegalArgumentException> { GtfsTime.format(-1) }
     }
 
     @Test
