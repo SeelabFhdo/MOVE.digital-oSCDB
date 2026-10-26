@@ -227,6 +227,17 @@ endpoint protection come when deployment is planned. *(builder's call)*
 - Departure logic tests covering calendar exceptions and after-midnight trips.
 - Controller slice tests for request validation and error format.
 
+### Accepted deviations
+
+Recorded after implementation; accepted as-is for the first version.
+
+- The feed detail (`GET /api/v1/feeds/{ref}`) does not embed agencies; use
+  `GET /api/v1/feeds/{ref}/agencies`.
+- A corrupt zip, or one without `feed_info.txt`, gets no `FAILED` feed row:
+  its dates are unknown, so it is only logged and listed under `failed` in the
+  admin import report. Zips that pass `feed_info.txt` but fail later are
+  marked `FAILED` as specified.
+
 ## Left to the builder
 
 - Exact package/class names, DTO shapes beyond the fields listed.

@@ -13,6 +13,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=local \
 ```
 
 The `local` profile starts PostgreSQL from `compose.yaml` (db/user/password `oscdb`, port 5432) and enables the admin import endpoint.
+Under `local`, both the API and PostgreSQL bind to `127.0.0.1` only.
 The API listens on `http://localhost:8080`. Swagger UI: `/swagger-ui.html`, OpenAPI: `/v3/api-docs`.
 
 ## Configuration
@@ -36,7 +37,13 @@ The API listens on `http://localhost:8080`. Swagger UI: `/swagger-ui.html`, Open
 - `GET /api/v1/stations/{stationId}/departures`
 - `POST /api/v1/admin/imports` (only if enabled)
 
-List endpoints take `page` and `size`. Departure endpoints take `date` (default today), `from` (`HH:mm`), `limit` and `feedId`.
+Paging: `/feeds`, `/stops` and `/stations` take `page` (0-based, default 0) and `size` (default 50, max 500) and return `{"items", "page", "size", "total"}`. `/agencies` and `/routes` are unpaged and return a plain JSON array.
+
+Departure endpoints take `date` (default today), `from` (`HH:mm`), `limit` (default 20, max 200) and `feedId`. Without `date`, if the chosen feed (`feedId`, else `current`) does not cover today, the latest date in that feed with today's weekday is used and the response is marked as fallback; `serviceDate` shows the date used.
+
+Errors are RFC 9457 `application/problem+json`.
+
+Import notes: each zip is imported once (by SHA-256); a zip whose import failed is retried on the next run. A corrupt zip or one without `feed_info.txt` gets no feed row: it is only logged and listed under `failed` in the admin import report. Overlapping feeds are allowed (the newest import wins per date); the import logs a warning.
 
 Example: `curl 'localhost:8080/api/v1/stations/adelenstrasse/departures?date=2026-07-01&from=07:00'`
 
