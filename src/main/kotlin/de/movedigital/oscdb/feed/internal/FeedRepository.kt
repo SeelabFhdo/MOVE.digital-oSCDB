@@ -45,6 +45,8 @@ internal class FeedRepository(
     override fun findById(id: Int): Feed? =
         jdbc.sql("select $columns from feed where id = :id").param("id", id).query(::map).optional().orElse(null)
 
+    override fun findReady(id: Int): Feed? = findById(id)?.takeIf { it.status == FeedStatus.READY }
+
     override fun findByDate(date: LocalDate): Feed? =
         jdbc.sql(
             """select $columns from feed
@@ -63,8 +65,7 @@ internal class FeedRepository(
     override fun resolve(ref: String): FeedResolution {
         if (ref == "current") return current() ?: throw NotFoundException("No feed available")
         val id = ref.toIntOrNull() ?: throw NotFoundException("Unknown feed '$ref'")
-        val feed = findById(id)?.takeIf { it.status == FeedStatus.READY }
-            ?: throw NotFoundException("Unknown feed '$ref'")
+        val feed = findReady(id) ?: throw NotFoundException("Unknown feed '$ref'")
         return FeedResolution(feed, false)
     }
 

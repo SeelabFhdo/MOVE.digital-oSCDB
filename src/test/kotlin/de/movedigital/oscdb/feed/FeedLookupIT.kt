@@ -74,6 +74,15 @@ class FeedLookupIT {
     }
 
     @Test
+    fun `findReady only returns READY feeds`() {
+        val importing = registry.register("a.zip", "a", FeedInfo(null, LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), null))
+        val ready = ready("b", "2026-01-01", "2026-01-31")
+        assertNull(lookup.findReady(importing))
+        assertNull(lookup.findReady(999))
+        assertEquals(ready, lookup.findReady(ready)?.id)
+    }
+
+    @Test
     fun `resolve numeric id`() {
         val id = ready("a", "2026-01-01", "2026-01-31")
         val r = lookup.resolve(id.toString())

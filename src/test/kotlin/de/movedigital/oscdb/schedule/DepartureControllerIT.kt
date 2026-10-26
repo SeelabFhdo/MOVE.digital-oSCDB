@@ -154,6 +154,35 @@ class DepartureControllerIT {
     }
 
     @Test
+    fun `feedId without date falls back to latest same weekday of that feed`() {
+        // Another feed covers today (2026-10-26), so current() is not the mini feed.
+        val today = registry.register("today.zip", "sha-today", FeedInfo("pub", LocalDate.parse("2026-10-01"), LocalDate.parse("2026-12-31"), "v"))
+        registry.markReady(today)
+        mvc.get("$stops/101/departures?feedId=$feedId").andExpect {
+            status { isOk() }
+            header { string("OSCDB-Feed-Fallback", "true") }
+            jsonPath("$.fallback") { value(true) }
+            jsonPath("$.serviceDate") { value("2026-01-26") }
+            jsonPath("$.feedId") { value(feedId) }
+            jsonPath("$.departures[*].tripId") { value(contains("T1", "T3")) }
+        }
+    }
+
+    @Test
+    fun `fallback without date stays on the fallback feed`() {
+        // Imported later and covering the fallback date, but ends earlier: not the current() fallback feed.
+        val other = registry.register("other.zip", "sha-other", FeedInfo("pub", LocalDate.parse("2026-01-20"), LocalDate.parse("2026-01-26"), "v"))
+        registry.markReady(other)
+        mvc.get("$stops/101/departures").andExpect {
+            status { isOk() }
+            jsonPath("$.fallback") { value(true) }
+            jsonPath("$.serviceDate") { value("2026-01-26") }
+            jsonPath("$.feedId") { value(feedId) }
+            jsonPath("$.departures[*].tripId") { value(contains("T1", "T3")) }
+        }
+    }
+
+    @Test
     fun `malformed parameters are 400`() {
         for (q in listOf("date=2026-13-01", "from=25:99", "from=abc", "limit=201", "limit=0", "feedId=x")) {
             mvc.get("$stops/101/departures?$q").andExpect {

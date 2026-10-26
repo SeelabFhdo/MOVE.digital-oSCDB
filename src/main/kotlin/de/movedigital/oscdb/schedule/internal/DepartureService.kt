@@ -2,7 +2,6 @@ package de.movedigital.oscdb.schedule.internal
 
 import de.movedigital.oscdb.feed.Feed
 import de.movedigital.oscdb.feed.FeedLookup
-import de.movedigital.oscdb.feed.FeedStatus
 import de.movedigital.oscdb.network.NetworkLookup
 import de.movedigital.oscdb.shared.gtfs.GtfsTime
 import de.movedigital.oscdb.shared.web.NotFoundException
@@ -54,14 +53,16 @@ internal class DepartureService(
     private val zone = ZoneId.of("Europe/Berlin")
 
     fun departures(place: DeparturePlace, date: LocalDate?, fromSecs: Int, limit: Int, feedId: Int?): DeparturesDto {
-        val explicitFeed = feedId?.let { id ->
-            feeds.findById(id)?.takeIf { it.status == FeedStatus.READY } ?: throw NotFoundException("Unknown feed '$id'")
-        }
-        val (day, fallback) = targetDate(date)
+        val explicitFeed = feedId?.let { id -> feeds.findReady(id) ?: throw NotFoundException("Unknown feed '$id'") }
+        val target = targetDate(date, explicitFeed)
+        val day = target.day
+        val fallback = target.fallback
         val previous = day.minusDays(1)
 
-        val feedOfDay: (LocalDate) -> Feed? = if (explicitFeed != null) {
-            { s -> explicitFeed.takeIf { s >= it.startDate && s <= it.endDate } }
+        // A pinned feed (explicit feedId or the current() fallback feed) serves only the dates it covers.
+        val pinned = explicitFeed ?: target.fallbackFeed
+        val feedOfDay: (LocalDate) -> Feed? = if (pinned != null) {
+            { s -> pinned.takeIf { s >= it.startDate && s <= it.endDate } }
         } else {
             feeds::findByDate
         }
@@ -84,18 +85,27 @@ internal class DepartureService(
         return DeparturesDto(day, (dayFeed ?: prevFeed)!!.id, fallback, merged)
     }
 
-    /** D and whether it was derived from a fallback feed. */
-    private fun targetDate(date: LocalDate?): Pair<LocalDate, Boolean> {
-        if (date != null) return date to false
-        val current = feeds.current() ?: throw NotFoundException("No timetable available")
+    /** D; [fallback] if D was derived from a feed not covering today, which is then [fallbackFeed] unless explicit. */
+    private data class Target(val day: LocalDate, val fallback: Boolean, val fallbackFeed: Feed? = null)
+
+    private fun targetDate(date: LocalDate?, explicitFeed: Feed?): Target {
+        if (date != null) return Target(date, false)
         val today = LocalDate.now(clock)
-        if (!current.fallback) return today to false
-        val feed = current.feed
-        // Latest date in the fallback feed with today's weekday.
+        if (explicitFeed != null) {
+            if (today >= explicitFeed.startDate && today <= explicitFeed.endDate) return Target(today, false)
+            return Target(latestSameWeekday(explicitFeed, today), true)
+        }
+        val current = feeds.current() ?: throw NotFoundException("No timetable available")
+        if (!current.fallback) return Target(today, false)
+        return Target(latestSameWeekday(current.feed, today), true, current.feed)
+    }
+
+    /** Latest date in [feed] with [today]'s weekday. */
+    private fun latestSameWeekday(feed: Feed, today: LocalDate): LocalDate {
         val shift = (feed.endDate.dayOfWeek.value - today.dayOfWeek.value + 7) % 7
         val candidate = feed.endDate.minusDays(shift.toLong())
         if (candidate < feed.startDate) throw NotFoundException("No timetable covers a ${today.dayOfWeek} in feed ${feed.id}")
-        return candidate to true
+        return candidate
     }
 
     private fun stopIds(feedId: Int, place: DeparturePlace): List<String>? = when (place) {
