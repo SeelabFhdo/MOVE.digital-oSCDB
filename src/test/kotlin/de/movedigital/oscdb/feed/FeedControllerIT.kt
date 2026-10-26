@@ -1,35 +1,22 @@
 package de.movedigital.oscdb.feed
 
+import de.movedigital.oscdb.FixedClockConfiguration
 import de.movedigital.oscdb.TestcontainersConfiguration
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@Import(TestcontainersConfiguration::class, FeedControllerIT.FixedClock::class)
+@Import(TestcontainersConfiguration::class, FixedClockConfiguration::class)
 class FeedControllerIT {
-    @TestConfiguration
-    class FixedClock {
-        @Bean
-        @Primary
-        fun fixedClock(): Clock =
-            Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"), ZoneId.of("Europe/Berlin"))
-    }
-
     @Autowired lateinit var mvc: MockMvc
     @Autowired lateinit var registry: FeedRegistry
     @Autowired lateinit var jdbc: JdbcClient

@@ -1,5 +1,6 @@
 package de.movedigital.oscdb.feed
 
+import de.movedigital.oscdb.FixedClockConfiguration
 import de.movedigital.oscdb.TestcontainersConfiguration
 import de.movedigital.oscdb.shared.web.NotFoundException
 import org.junit.jupiter.api.BeforeEach
@@ -7,31 +8,17 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.TestConfiguration
-import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Import
-import org.springframework.context.annotation.Primary
 import org.springframework.jdbc.core.simple.JdbcClient
-import java.time.Clock
-import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @SpringBootTest
-@Import(TestcontainersConfiguration::class, FeedLookupIT.FixedClock::class)
+@Import(TestcontainersConfiguration::class, FixedClockConfiguration::class)
 class FeedLookupIT {
-    @TestConfiguration
-    class FixedClock {
-        @Bean
-        @Primary
-        fun fixedClock(): Clock =
-            Clock.fixed(Instant.parse("2026-10-26T10:00:00Z"), ZoneId.of("Europe/Berlin"))
-    }
-
     @Autowired lateinit var lookup: FeedLookup
     @Autowired lateinit var registry: FeedRegistry
     @Autowired lateinit var jdbc: JdbcClient

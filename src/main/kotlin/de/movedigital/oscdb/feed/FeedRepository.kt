@@ -13,7 +13,7 @@ import java.time.OffsetDateTime
 internal class FeedRepository(
     private val jdbc: JdbcClient,
     private val clock: Clock,
-) : FeedLookup, FeedRegistry {
+) : FeedLookup, FeedRegistry, FeedCatalog {
 
     private val columns = "id, source_file, publisher, start_date, end_date, version, imported_at, status"
 
@@ -28,12 +28,12 @@ internal class FeedRepository(
         status = FeedStatus.valueOf(rs.getString("status")),
     )
 
-    fun findAll(page: PageRequest): List<Feed> =
+    override fun findAll(page: PageRequest): List<Feed> =
         jdbc.sql("select $columns from feed order by id limit :limit offset :offset")
             .param("limit", page.size).param("offset", page.offset)
             .query(::map).list()
 
-    fun count(): Long = jdbc.sql("select count(*) from feed").query(Long::class.java).single()
+    override fun count(): Long = jdbc.sql("select count(*) from feed").query(Long::class.java).single()
 
     override fun findById(id: Int): Feed? =
         jdbc.sql("select $columns from feed where id = :id").param("id", id).query(::map).optional().orElse(null)
