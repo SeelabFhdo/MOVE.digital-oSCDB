@@ -7,6 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.context.annotation.Import
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 
 @SpringBootTest(properties = ["oscdb.import.admin-endpoint-enabled=true", "oscdb.import.data-dir=/nonexistent-oscdb-dir"])
@@ -23,6 +24,14 @@ class AdminImportControllerEnabledIT {
             jsonPath("$.imported") { isEmpty() }
         }
     }
+
+    @Test
+    fun `get is 405 problem json`() {
+        mvc.get("/api/v1/admin/imports").andExpect {
+            status { isMethodNotAllowed() }
+            content { contentTypeCompatibleWith("application/problem+json") }
+        }
+    }
 }
 
 @SpringBootTest
@@ -33,6 +42,9 @@ class AdminImportControllerDisabledIT {
 
     @Test
     fun `endpoint absent by default`() {
-        mvc.post("/api/v1/admin/imports").andExpect { status { isNotFound() } }
+        mvc.post("/api/v1/admin/imports").andExpect {
+            status { isNotFound() }
+            content { contentTypeCompatibleWith("application/problem+json") }
+        }
     }
 }
