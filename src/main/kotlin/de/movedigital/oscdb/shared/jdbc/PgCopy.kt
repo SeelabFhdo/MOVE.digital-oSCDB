@@ -25,9 +25,13 @@ class CopyRowWriter internal constructor(private val out: BufferedWriter) {
     }
 }
 
+private val identifier = Regex("[A-Za-z_][A-Za-z0-9_]*")
+
 class PgCopy(private val conn: Connection) {
     /** Streams rows into [table] via COPY ... FROM STDIN; returns the number of rows copied. */
     fun into(table: String, columns: List<String>, block: (CopyRowWriter) -> Unit): Long {
+        require(table.split('.').all { identifier.matches(it) }) { "Invalid table name: '$table'" }
+        require(columns.isNotEmpty() && columns.all { identifier.matches(it) }) { "Invalid columns: $columns" }
         val copyIn = conn.unwrap(PGConnection::class.java).copyAPI
             .copyIn("COPY $table (${columns.joinToString(", ")}) FROM STDIN (FORMAT csv)")
         val stream = PGCopyOutputStream(copyIn)
