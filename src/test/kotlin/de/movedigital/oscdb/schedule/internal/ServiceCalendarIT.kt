@@ -1,11 +1,12 @@
-package de.movedigital.oscdb.schedule
+package de.movedigital.oscdb.schedule.internal
 
+import de.movedigital.oscdb.schedule.ScheduleLoader
 import de.movedigital.oscdb.Fixtures
 import de.movedigital.oscdb.FixedClockConfiguration
 import de.movedigital.oscdb.TestcontainersConfiguration
 import de.movedigital.oscdb.feed.FeedInfo
 import de.movedigital.oscdb.feed.FeedRegistry
-import de.movedigital.oscdb.importer.ZipGtfsSource
+import de.movedigital.oscdb.importer.internal.ZipGtfsSource
 import de.movedigital.oscdb.network.NetworkLoader
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

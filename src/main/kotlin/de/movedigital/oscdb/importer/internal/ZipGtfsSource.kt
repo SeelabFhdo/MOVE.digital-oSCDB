@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.importer
+package de.movedigital.oscdb.importer.internal
 
 import de.movedigital.oscdb.shared.gtfs.GtfsSource
 import java.io.InputStream

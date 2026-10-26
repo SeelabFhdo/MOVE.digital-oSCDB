@@ -1,5 +1,6 @@
-package de.movedigital.oscdb.importer
+package de.movedigital.oscdb.importer.internal
 
+import de.movedigital.oscdb.importer.FeedImported
 import de.movedigital.oscdb.Fixtures
 import de.movedigital.oscdb.TestcontainersConfiguration
 import de.movedigital.oscdb.feed.FeedStatus

@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.network
+package de.movedigital.oscdb.network.internal
 
 import de.movedigital.oscdb.feed.FeedLookup
 import de.movedigital.oscdb.shared.web.NotFoundException

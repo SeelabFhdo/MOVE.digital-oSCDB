@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.importer
+package de.movedigital.oscdb.importer.internal
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.web.bind.annotation.PostMapping

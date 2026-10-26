@@ -1,5 +1,12 @@
-package de.movedigital.oscdb.feed
+package de.movedigital.oscdb.feed.internal
 
+import de.movedigital.oscdb.feed.Feed
+import de.movedigital.oscdb.feed.FeedCatalog
+import de.movedigital.oscdb.feed.FeedInfo
+import de.movedigital.oscdb.feed.FeedLookup
+import de.movedigital.oscdb.feed.FeedRegistry
+import de.movedigital.oscdb.feed.FeedResolution
+import de.movedigital.oscdb.feed.FeedStatus
 import de.movedigital.oscdb.shared.web.NotFoundException
 import de.movedigital.oscdb.shared.web.PageRequest
 import org.springframework.jdbc.core.simple.JdbcClient

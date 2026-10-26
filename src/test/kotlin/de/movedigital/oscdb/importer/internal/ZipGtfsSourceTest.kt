@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.importer
+package de.movedigital.oscdb.importer.internal
 
 import de.movedigital.oscdb.Fixtures
 import org.junit.jupiter.api.Test

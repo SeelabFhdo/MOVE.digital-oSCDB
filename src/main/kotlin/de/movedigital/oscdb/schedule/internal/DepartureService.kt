@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.schedule
+package de.movedigital.oscdb.schedule.internal
 
 import de.movedigital.oscdb.feed.Feed
 import de.movedigital.oscdb.feed.FeedLookup

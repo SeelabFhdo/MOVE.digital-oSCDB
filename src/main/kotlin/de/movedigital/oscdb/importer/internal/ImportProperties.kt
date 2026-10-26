@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.importer
+package de.movedigital.oscdb.importer.internal
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.nio.file.Path

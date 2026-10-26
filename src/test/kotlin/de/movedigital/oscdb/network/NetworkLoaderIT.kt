@@ -2,7 +2,7 @@ package de.movedigital.oscdb.network
 
 import de.movedigital.oscdb.Fixtures
 import de.movedigital.oscdb.TestcontainersConfiguration
-import de.movedigital.oscdb.importer.ZipGtfsSource
+import de.movedigital.oscdb.importer.internal.ZipGtfsSource
 import de.movedigital.oscdb.feed.FeedInfo
 import de.movedigital.oscdb.feed.FeedRegistry
 import de.movedigital.oscdb.shared.gtfs.GtfsSource

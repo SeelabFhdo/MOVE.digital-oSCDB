@@ -1,5 +1,6 @@
-package de.movedigital.oscdb.network
+package de.movedigital.oscdb.network.internal
 
+import de.movedigital.oscdb.network.NetworkLoader
 import de.movedigital.oscdb.shared.gtfs.GtfsRow
 import de.movedigital.oscdb.shared.gtfs.GtfsSource
 import de.movedigital.oscdb.shared.gtfs.GtfsTable

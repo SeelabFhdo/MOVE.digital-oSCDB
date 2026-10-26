@@ -5,7 +5,7 @@ import de.movedigital.oscdb.FixedClockConfiguration
 import de.movedigital.oscdb.TestcontainersConfiguration
 import de.movedigital.oscdb.feed.FeedInfo
 import de.movedigital.oscdb.feed.FeedRegistry
-import de.movedigital.oscdb.importer.ZipGtfsSource
+import de.movedigital.oscdb.importer.internal.ZipGtfsSource
 import de.movedigital.oscdb.network.NetworkLoader
 import org.hamcrest.Matchers.contains
 import org.junit.jupiter.api.BeforeEach

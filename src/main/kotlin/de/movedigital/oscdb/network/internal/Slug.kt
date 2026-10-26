@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.network
+package de.movedigital.oscdb.network.internal
 
 private val nonSlug = Regex("[^a-z0-9]+")
 

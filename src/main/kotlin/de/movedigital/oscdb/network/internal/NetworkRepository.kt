@@ -1,5 +1,7 @@
-package de.movedigital.oscdb.network
+package de.movedigital.oscdb.network.internal
 
+import de.movedigital.oscdb.network.NetworkLookup
+import de.movedigital.oscdb.network.RouteInfo
 import de.movedigital.oscdb.shared.web.PageRequest
 import de.movedigital.oscdb.shared.web.PageResponse
 import org.springframework.jdbc.core.simple.JdbcClient

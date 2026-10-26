@@ -1,5 +1,9 @@
-package de.movedigital.oscdb.feed
+package de.movedigital.oscdb.feed.internal
 
+import de.movedigital.oscdb.feed.Feed
+import de.movedigital.oscdb.feed.FeedCatalog
+import de.movedigital.oscdb.feed.FeedLookup
+import de.movedigital.oscdb.feed.FeedStatus
 import de.movedigital.oscdb.shared.web.PageRequest
 import de.movedigital.oscdb.shared.web.PageResponse
 import de.movedigital.oscdb.shared.web.okWithFallback

@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.network
+package de.movedigital.oscdb.network.internal
 
 import kotlin.test.Test
 import kotlin.test.assertEquals

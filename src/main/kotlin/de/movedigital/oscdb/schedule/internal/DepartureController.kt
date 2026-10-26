@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.schedule
+package de.movedigital.oscdb.schedule.internal
 
 import de.movedigital.oscdb.shared.web.BadRequestException
 import de.movedigital.oscdb.shared.web.okWithFallback

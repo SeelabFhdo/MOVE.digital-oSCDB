@@ -1,4 +1,4 @@
-package de.movedigital.oscdb.schedule
+package de.movedigital.oscdb.schedule.internal
 
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Component

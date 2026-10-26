@@ -1,5 +1,6 @@
-package de.movedigital.oscdb.schedule
+package de.movedigital.oscdb.schedule.internal
 
+import de.movedigital.oscdb.schedule.ScheduleLoader
 import de.movedigital.oscdb.network.NetworkLookup
 import de.movedigital.oscdb.shared.gtfs.GtfsRow
 import de.movedigital.oscdb.shared.gtfs.GtfsSource
