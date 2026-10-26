@@ -1,0 +1,3 @@
+oscdb:
+  import:
+    on-startup: false

@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: oscdb
+  docker:
+    compose:
+      enabled: false
+
+oscdb:
+  import:
+    data-dir: ../Daten
+    on-startup: true
+    admin-endpoint-enabled: false

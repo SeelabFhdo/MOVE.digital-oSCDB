@@ -1,0 +1,8 @@
+spring:
+  docker:
+    compose:
+      enabled: true
+
+oscdb:
+  import:
+    admin-endpoint-enabled: true
