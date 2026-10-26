@@ -44,4 +44,27 @@ class StationGrouperTest {
         assertEquals("dortmund-hbf", groups[0].stationId)
         assertEquals(listOf("a", "b"), groups[0].stopIds)
     }
+
+    @Test
+    fun `ids do not depend on stop order`() {
+        fun ids(list: List<StopPoint>) = StationGrouper.group(list).flatMap { g -> g.stopIds.map { it to g.stationId } }.toMap()
+        val forward = ids(stops)
+        val reversed = ids(stops.reversed())
+        assertEquals(forward, reversed)
+        assertEquals("adelenstrasse", reversed["101"])
+        assertEquals("adelenstrasse-2", reversed["103"])
+    }
+
+    @Test
+    fun `literal name with suffix does not collide with split group`() {
+        val list = listOf(
+            StopPoint("1", "Foo", 51.0, 7.0, null),
+            StopPoint("2", "Foo", 52.0, 7.0, null),
+            StopPoint("3", "Foo 2", 51.0001, 7.0, null),
+        )
+        for (input in listOf(list, list.reversed())) {
+            val byStop = StationGrouper.group(input).associate { it.stopIds.single() to it.stationId }
+            assertEquals(mapOf("1" to "foo", "2" to "foo-3", "3" to "foo-2"), byStop)
+        }
+    }
 }

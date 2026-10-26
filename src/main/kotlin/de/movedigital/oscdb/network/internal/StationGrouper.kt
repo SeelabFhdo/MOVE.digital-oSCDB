@@ -42,18 +42,39 @@ object StationGrouper {
             }
         }
 
-        val used = HashMap<String, Int>()
+        val ids = assignIds(drafts)
         return drafts.map { d ->
-            val base = slug(d.name).ifEmpty { "station" }
-            val n = used.merge(base, 1, Int::plus)!!
             StationGroup(
-                stationId = if (n == 1) base else "$base-$n",
+                stationId = ids.getValue(d),
                 name = d.name,
                 lat = d.members.map { it.lat }.average(),
                 lon = d.members.map { it.lon }.average(),
-                stopIds = d.members.map { it.stopId },
+                stopIds = d.members.map { it.stopId }.sorted(),
             )
         }
+    }
+
+    /**
+     * Station ids independent of stop order: per slug, the group with the smallest stop_id gets the bare slug,
+     * the others `<slug>-<n>` in stop_id order, skipping ids already taken (e.g. by a name that slugs to `foo-2`).
+     */
+    private fun assignIds(drafts: List<Draft>): Map<Draft, String> {
+        val minStop = drafts.associateWith { d -> d.members.minOf { it.stopId } }
+        val bySlug = drafts.groupBy { slug(it.name).ifEmpty { "station" } }.toSortedMap()
+            .mapValues { (_, ds) -> ds.sortedBy { minStop.getValue(it) } }
+        val result = HashMap<Draft, String>()
+        val taken = HashSet<String>()
+        bySlug.forEach { (base, ds) -> result[ds.first()] = base; taken += base }
+        bySlug.forEach { (base, ds) ->
+            var n = 2
+            ds.drop(1).forEach { d ->
+                while ("$base-$n" in taken) n++
+                val id = "$base-$n"
+                result[d] = id
+                taken += id
+            }
+        }
+        return result
     }
 
     private fun distanceM(a: StopPoint, b: StopPoint): Double {
