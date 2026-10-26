@@ -2,6 +2,7 @@ package de.movedigital.oscdb.importer.internal
 
 import de.movedigital.oscdb.importer.FeedImported
 import de.movedigital.oscdb.feed.FeedInfo
+import de.movedigital.oscdb.feed.FeedLookup
 import de.movedigital.oscdb.feed.FeedRegistry
 import de.movedigital.oscdb.feed.FeedStatus
 import de.movedigital.oscdb.network.NetworkLoader
@@ -29,6 +30,7 @@ data class ImportReport(val imported: List<Int>, val skipped: Int, val failed: L
 class ImportService(
     private val props: ImportProperties,
     private val registry: FeedRegistry,
+    private val feeds: FeedLookup,
     private val networkLoader: NetworkLoader,
     private val scheduleLoader: ScheduleLoader,
     private val dataSource: DataSource,
@@ -78,6 +80,7 @@ class ImportService(
             val info = readFeedInfo(source)
             if (status != null) registry.deleteBySha(sha)
             val id = registry.register(name, sha, info)
+            warnOnOverlap(name, info)
             try {
                 tx.executeWithoutResult {
                     val connection = DataSourceUtils.getConnection(dataSource)
@@ -97,6 +100,17 @@ class ImportService(
             )
             return id
         }
+    }
+
+    /** Overlapping feeds are allowed (newest import wins per date); just make them visible in the log. */
+    private fun warnOnOverlap(name: String, info: FeedInfo) {
+        val overlapping = feeds.findReadyOverlapping(info.startDate, info.endDate)
+        if (overlapping.isEmpty()) return
+        log.warn(
+            "Feed {} ({}..{}) overlaps READY feed(s) {}",
+            name, info.startDate, info.endDate,
+            overlapping.joinToString { "${it.sourceFile} (${it.startDate}..${it.endDate})" },
+        )
     }
 
     private fun count(table: String, feedId: Int): Int =

@@ -54,6 +54,10 @@ internal class FeedRepository(
                order by imported_at desc, id desc limit 1""",
         ).param("d", date).query(::map).optional().orElse(null)
 
+    override fun findReadyOverlapping(start: LocalDate, end: LocalDate): List<Feed> =
+        jdbc.sql("select $columns from feed where status = 'READY' and start_date <= :e and end_date >= :s order by id")
+            .param("s", start).param("e", end).query(::map).list()
+
     override fun current(): FeedResolution? {
         findByDate(LocalDate.now(clock))?.let { return FeedResolution(it, false) }
         val latest = jdbc.sql(

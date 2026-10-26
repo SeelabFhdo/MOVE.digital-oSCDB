@@ -11,6 +11,9 @@ interface FeedLookup {
     /** READY feed covering [date]; newest import wins. */
     fun findByDate(date: LocalDate): Feed?
 
+    /** READY feeds whose date range overlaps [start]..[end], ordered by id. */
+    fun findReadyOverlapping(start: LocalDate, end: LocalDate): List<Feed>
+
     /** Feed covering today, else READY feed with latest end date (fallback); null if no READY feed. */
     fun current(): FeedResolution?
 

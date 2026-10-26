@@ -20,10 +20,15 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 
 @SpringBootTest
 @Import(TestcontainersConfiguration::class)
 @RecordApplicationEvents
+@ExtendWith(OutputCaptureExtension::class)
 class ImportServiceIT {
     companion object {
         val dir: Path = Files.createTempDirectory("oscdb-import-it")
@@ -73,6 +78,32 @@ class ImportServiceIT {
         assertEquals(1, count("feed"))
         assertEquals(7, count("stop_time"))
         assertEquals(1, events.stream(FeedImported::class.java).count())
+    }
+
+    @Test
+    fun `overlapping feed logs one warning naming both files`(output: CapturedOutput) {
+        val mini = Fixtures.miniZip(dir)
+        service.importAll()
+        // Same feed content plus an extra entry: different sha, same date range.
+        ZipFile(mini.toFile()).use { zf ->
+            ZipOutputStream(Files.newOutputStream(dir.resolve("mini-copy.zip"))).use { out ->
+                for (e in zf.entries()) {
+                    out.putNextEntry(ZipEntry(e.name))
+                    zf.getInputStream(e).use { it.copyTo(out) }
+                    out.closeEntry()
+                }
+                out.putNextEntry(ZipEntry("README.TXT"))
+                out.write("copy".toByteArray())
+                out.closeEntry()
+            }
+        }
+        val report = service.importAll()
+        assertEquals(1, report.imported.size)
+        val warnings = output.out.lines().filter { "overlaps READY feed" in it }
+        assertEquals(1, warnings.size, warnings.toString())
+        assertTrue(warnings[0].contains("WARN"))
+        assertTrue(warnings[0].contains("mini-copy.zip (2026-01-01..2026-01-31)"))
+        assertTrue(warnings[0].contains("mini.zip (2026-01-01..2026-01-31)"))
     }
 
     @Test
