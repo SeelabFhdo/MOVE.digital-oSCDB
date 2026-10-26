@@ -1,0 +1,2 @@
+feed_publisher_name,feed_publisher_url,feed_lang,feed_start_date,feed_end_date,feed_version
+Dortmunder Stadtwerke AG,https://www.21.de/,de,20260101,20260131,test-1

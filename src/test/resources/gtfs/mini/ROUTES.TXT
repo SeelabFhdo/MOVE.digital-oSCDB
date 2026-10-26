@@ -1,0 +1,3 @@
+route_id,agency_id,route_short_name,route_long_name,route_type,route_color,route_text_color
+1,1,U41,,1,FFCC00,000000
+2,1,440,,3,2B2171,FFFFFF

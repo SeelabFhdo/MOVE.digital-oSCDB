@@ -1,0 +1,6 @@
+stop_id,stop_name,stop_lat,stop_lon
+101,Adelenstraße,51.487622,7.530952
+102,Adelenstraße,51.487477,7.531048
+103,Adelenstraße,51.520000,7.460000
+200,Hauptbahnhof,51.517800,7.459300
+300,Westfalenhallen,51.495000,7.451000
