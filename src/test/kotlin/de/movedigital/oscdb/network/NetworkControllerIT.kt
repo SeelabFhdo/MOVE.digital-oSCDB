@@ -118,6 +118,6 @@ class NetworkControllerIT {
         assert(!lookup.stopExists(feedId, "999"))
         assert(lookup.platformsOf(feedId, "adelenstrasse")!!.toSet() == setOf("101", "102"))
         assert(lookup.platformsOf(feedId, "nope") == null)
-        assert(lookup.routes(feedId)["1"] == RouteInfo("1", "U41", 1, "FFCC00"))
+        assert(lookup.routes(feedId)["1"] == RouteInfo("1", "U41", 1, "subway", "FFCC00"))
     }
 }

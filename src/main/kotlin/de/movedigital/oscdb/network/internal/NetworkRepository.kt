@@ -33,7 +33,10 @@ internal class NetworkRepository(private val jdbc: JdbcClient) : NetworkLookup {
     override fun routes(feedId: Int): Map<String, RouteInfo> =
         jdbc.sql("select route_id, short_name, type, color from route where feed_id = :feed")
             .param("feed", feedId)
-            .query { rs, _ -> RouteInfo(rs.getString(1), rs.getString(2), rs.getIntOrNull(3), rs.getString(4)) }
+            .query { rs, _ ->
+                val type = rs.getIntOrNull(3)
+                RouteInfo(rs.getString(1), rs.getString(2), type, routeTypeLabel(type), rs.getString(4))
+            }
             .list().associateBy { it.routeId }
 
     private fun stationExists(feedId: Int, stationId: String): Boolean =

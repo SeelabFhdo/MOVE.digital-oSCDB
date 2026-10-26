@@ -14,4 +14,5 @@ interface NetworkLookup {
     fun routes(feedId: Int): Map<String, RouteInfo>
 }
 
-data class RouteInfo(val routeId: String, val shortName: String?, val type: Int?, val color: String?)
+/** [typeLabel]: `tram`, `subway`, `rail`, `bus`, `monorail` or `other` (from [type]). */
+data class RouteInfo(val routeId: String, val shortName: String?, val type: Int?, val typeLabel: String, val color: String?)

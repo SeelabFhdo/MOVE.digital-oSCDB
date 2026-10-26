@@ -76,6 +76,7 @@ class DepartureControllerIT {
             jsonPath("$.departures[1].routeShortName") { value("U41") }
             jsonPath("$.departures[1].routeColor") { value("FFCC00") }
             jsonPath("$.departures[1].routeType") { value(1) }
+            jsonPath("$.departures[1].routeTypeLabel") { value("subway") }
             jsonPath("$.departures[1].timestamp") { value("2026-01-08T08:00:00+01:00") }
             jsonPath("$.departures[2].time") { value("09:00:00") }
             jsonPath("$.departures[2].stopId") { value("102") }
