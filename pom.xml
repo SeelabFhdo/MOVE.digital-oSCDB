@@ -187,6 +187,12 @@
           <execution>
             <id>java-compile</id>
             <phase>compile</phase>
+            <configuration>
+              <!-- sourceDirectory is src/main/kotlin; javac must see package-info.java (Modulith annotations) -->
+              <compileSourceRoots>
+                <root>${project.basedir}/src/main/java</root>
+              </compileSourceRoots>
+            </configuration>
             <goals><goal>compile</goal></goals>
           </execution>
           <execution>
