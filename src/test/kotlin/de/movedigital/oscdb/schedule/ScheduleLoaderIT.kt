@@ -2,7 +2,7 @@ package de.movedigital.oscdb.schedule
 
 import de.movedigital.oscdb.Fixtures
 import de.movedigital.oscdb.TestcontainersConfiguration
-import de.movedigital.oscdb.ZipTestSource
+import de.movedigital.oscdb.importer.ZipGtfsSource
 import de.movedigital.oscdb.feed.FeedInfo
 import de.movedigital.oscdb.feed.FeedRegistry
 import de.movedigital.oscdb.network.NetworkLoader
@@ -40,7 +40,7 @@ class ScheduleLoaderIT {
     fun clean() {
         jdbc.sql("truncate feed restart identity cascade").update()
         val id = registry.register("mini.zip", "sha", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
-        ZipTestSource(Fixtures.miniZip(tmp)).use { src -> loadInTx(id, src) }
+        ZipGtfsSource(Fixtures.miniZip(tmp)).use { src -> loadInTx(id, src) }
     }
 
     private fun loadInTx(id: Int, src: GtfsSource) {
@@ -55,7 +55,7 @@ class ScheduleLoaderIT {
     fun `consecutive duplicate stop_time rows are skipped`() {
         jdbc.sql("truncate feed restart identity cascade").update()
         val id = registry.register("dup.zip", "sha2", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
-        ZipTestSource(Fixtures.miniZip(tmp.resolve("x").also { Files.createDirectories(it) })).use { base ->
+        ZipGtfsSource(Fixtures.miniZip(tmp.resolve("x").also { Files.createDirectories(it) })).use { base ->
             val dup = object : GtfsSource {
                 override fun open(fileName: String): InputStream? =
                     if (fileName.equals("stop_times.txt", true)) {
@@ -73,7 +73,7 @@ class ScheduleLoaderIT {
     fun `fails loudly when network is missing`() {
         jdbc.sql("truncate feed restart identity cascade").update()
         val id = registry.register("n.zip", "sha3", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
-        ZipTestSource(Fixtures.miniZip(tmp.resolve("y").also { Files.createDirectories(it) })).use { src ->
+        ZipGtfsSource(Fixtures.miniZip(tmp.resolve("y").also { Files.createDirectories(it) })).use { src ->
             val ex = assertFailsWith<IllegalStateException> {
                 tx.execute { scheduleLoader.load(id, src, DataSourceUtils.getConnection(dataSource)) }
             }

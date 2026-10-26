@@ -3,7 +3,7 @@ package de.movedigital.oscdb.network
 import de.movedigital.oscdb.Fixtures
 import de.movedigital.oscdb.FixedClockConfiguration
 import de.movedigital.oscdb.TestcontainersConfiguration
-import de.movedigital.oscdb.ZipTestSource
+import de.movedigital.oscdb.importer.ZipGtfsSource
 import de.movedigital.oscdb.feed.FeedInfo
 import de.movedigital.oscdb.feed.FeedRegistry
 import de.movedigital.oscdb.schedule.ScheduleLoader
@@ -43,7 +43,7 @@ class NetworkControllerIT {
     fun load() {
         jdbc.sql("truncate feed restart identity cascade").update()
         feedId = registry.register("mini.zip", "sha", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-12-31"), "v"))
-        ZipTestSource(Fixtures.miniZip(tmp)).use { src ->
+        ZipGtfsSource(Fixtures.miniZip(tmp)).use { src ->
             tx.execute {
                 val c = DataSourceUtils.getConnection(dataSource)
                 networkLoader.load(feedId, src, c)

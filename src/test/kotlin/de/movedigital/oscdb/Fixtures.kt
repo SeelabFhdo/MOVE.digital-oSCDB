@@ -1,11 +1,8 @@
 package de.movedigital.oscdb
 
-import de.movedigital.oscdb.shared.gtfs.GtfsSource
-import java.io.InputStream
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.zip.ZipEntry
-import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 object Fixtures {
@@ -27,14 +24,4 @@ object Fixtures {
         }
         return zip
     }
-}
-
-/** Test-only [GtfsSource] over a zip file with case-insensitive entry lookup. */
-class ZipTestSource(path: Path) : GtfsSource, AutoCloseable {
-    private val zip = ZipFile(path.toFile())
-    private val entries = zip.entries().asSequence().associateBy { it.name.lowercase() }
-
-    override fun open(fileName: String): InputStream? = entries[fileName.lowercase()]?.let { zip.getInputStream(it) }
-
-    override fun close() = zip.close()
 }
