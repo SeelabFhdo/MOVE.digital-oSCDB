@@ -13,7 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.context.annotation.Import
 import org.springframework.jdbc.core.simple.JdbcClient
+import java.io.InputStream
+import java.nio.file.Files
 import java.nio.file.Path
+import org.springframework.jdbc.datasource.DataSourceUtils
+import org.springframework.transaction.support.TransactionTemplate
+import de.movedigital.oscdb.shared.gtfs.GtfsSource
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import java.time.LocalDate
 import javax.sql.DataSource
 import kotlin.test.assertEquals
@@ -26,17 +33,51 @@ class ScheduleLoaderIT {
     @Autowired lateinit var registry: FeedRegistry
     @Autowired lateinit var jdbc: JdbcClient
     @Autowired lateinit var dataSource: DataSource
+    @Autowired lateinit var tx: TransactionTemplate
     @TempDir lateinit var tmp: Path
 
     @BeforeEach
     fun clean() {
         jdbc.sql("truncate feed restart identity cascade").update()
         val id = registry.register("mini.zip", "sha", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
-        ZipTestSource(Fixtures.miniZip(tmp)).use { src ->
-            dataSource.connection.use { c ->
-                networkLoader.load(id, src, c)
-                scheduleLoader.load(id, src, c)
+        ZipTestSource(Fixtures.miniZip(tmp)).use { src -> loadInTx(id, src) }
+    }
+
+    private fun loadInTx(id: Int, src: GtfsSource) {
+        tx.execute {
+            val c = DataSourceUtils.getConnection(dataSource)
+            networkLoader.load(id, src, c)
+            scheduleLoader.load(id, src, c)
+        }
+    }
+
+    @Test
+    fun `consecutive duplicate stop_time rows are skipped`() {
+        jdbc.sql("truncate feed restart identity cascade").update()
+        val id = registry.register("dup.zip", "sha2", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
+        ZipTestSource(Fixtures.miniZip(tmp.resolve("x").also { Files.createDirectories(it) })).use { base ->
+            val dup = object : GtfsSource {
+                override fun open(fileName: String): InputStream? =
+                    if (fileName.equals("stop_times.txt", true)) {
+                        val text = base.open(fileName)!!.use { it.readBytes().decodeToString() }
+                        val lines = text.trimEnd().lines()
+                        (lines.take(2) + lines.drop(1)).joinToString("\n").let { ("$it\n").byteInputStream() }
+                    } else base.open(fileName)
             }
+            loadInTx(id, dup)
+        }
+        assertEquals(7, count("stop_time"))
+    }
+
+    @Test
+    fun `fails loudly when network is missing`() {
+        jdbc.sql("truncate feed restart identity cascade").update()
+        val id = registry.register("n.zip", "sha3", FeedInfo("pub", LocalDate.parse("2026-01-01"), LocalDate.parse("2026-01-31"), "v"))
+        ZipTestSource(Fixtures.miniZip(tmp.resolve("y").also { Files.createDirectories(it) })).use { src ->
+            val ex = assertFailsWith<IllegalStateException> {
+                tx.execute { scheduleLoader.load(id, src, DataSourceUtils.getConnection(dataSource)) }
+            }
+            assertTrue(ex.message!!.contains("NetworkLoader must run first"))
         }
     }
 

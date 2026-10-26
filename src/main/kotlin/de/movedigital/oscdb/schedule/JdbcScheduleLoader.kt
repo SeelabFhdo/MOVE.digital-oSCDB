@@ -7,12 +7,14 @@ import de.movedigital.oscdb.shared.gtfs.GtfsTable
 import de.movedigital.oscdb.shared.gtfs.GtfsTime
 import de.movedigital.oscdb.shared.jdbc.PgCopy
 import org.springframework.stereotype.Component
+import org.slf4j.LoggerFactory
 import java.sql.Connection
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @Component
 internal class JdbcScheduleLoader(private val network: NetworkLookup) : ScheduleLoader {
+    private val log = LoggerFactory.getLogger(JdbcScheduleLoader::class.java)
     private val dateFormat = DateTimeFormatter.BASIC_ISO_DATE
 
     override fun load(feedId: Int, source: GtfsSource, connection: Connection) {
@@ -77,11 +79,20 @@ internal class JdbcScheduleLoader(private val network: NetworkLookup) : Schedule
     private fun loadStopTimes(feedId: Int, source: GtfsSource, copy: PgCopy): Map<String, LastStop> {
         val last = HashMap<String, LastStop>()
         val cols = listOf("feed_id", "trip_id", "stop_sequence", "stop_id", "arrival_secs", "departure_secs", "pickup_type", "drop_off_type")
+        var prevTrip: String? = null
+        var prevSeq = 0
+        var skipped = 0L
         copy.into("stop_time", cols) { w ->
             read(source, "stop_times.txt") { r ->
                 val trip = r["trip_id"] ?: return@read
                 val stop = r["stop_id"] ?: return@read
                 val seq = r["stop_sequence"]?.toIntOrNull() ?: return@read
+                if (trip == prevTrip && seq == prevSeq) {
+                    skipped++
+                    return@read
+                }
+                prevTrip = trip
+                prevSeq = seq
                 val arrival = r["arrival_time"]?.let(GtfsTime::toSeconds)
                 val departure = r["departure_time"]?.let(GtfsTime::toSeconds)
                 w.row(feedId, trip, seq, stop, arrival ?: departure, departure ?: arrival, r["pickup_type"]?.toIntOrNull(), r["drop_off_type"]?.toIntOrNull())
@@ -93,12 +104,14 @@ internal class JdbcScheduleLoader(private val network: NetworkLookup) : Schedule
                 }
             }
         }
+        if (skipped > 0) log.warn("Feed {}: skipped {} consecutive duplicate stop_times rows", feedId, skipped)
         return last
     }
 
     private fun deriveHeadsigns(feedId: Int, lastStops: Map<String, LastStop>, connection: Connection, copy: PgCopy) {
         if (lastStops.isEmpty()) return
         val names = network.stopNames(feedId)
+        check(names.isNotEmpty()) { "No stop names for feed $feedId; NetworkLoader must run first in the same transaction" }
         connection.createStatement().use { it.execute("create temp table tmp_headsign (trip_id text primary key, headsign text not null)") }
         try {
             copy.into("tmp_headsign", listOf("trip_id", "headsign")) { w ->
