@@ -22,3 +22,5 @@ data class PageRequest(val page: Int, val size: Int) {
 class NotFoundException(val detail: String) : RuntimeException(detail)
 
 class BadRequestException(val detail: String) : RuntimeException(detail)
+
+class ConflictException(val detail: String) : RuntimeException(detail)

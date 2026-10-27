@@ -24,6 +24,9 @@ class ProblemHandling : ResponseEntityExceptionHandler() {
     @ExceptionHandler(BadRequestException::class)
     fun badRequest(e: BadRequestException): ProblemDetail = problem(HttpStatus.BAD_REQUEST, e.detail)
 
+    @ExceptionHandler(ConflictException::class)
+    fun conflict(e: ConflictException): ProblemDetail = problem(HttpStatus.CONFLICT, e.detail)
+
     @ExceptionHandler(MethodArgumentTypeMismatchException::class)
     fun typeMismatch(e: MethodArgumentTypeMismatchException): ProblemDetail =
         problem(HttpStatus.BAD_REQUEST, "Invalid value for parameter '${e.name}'")
