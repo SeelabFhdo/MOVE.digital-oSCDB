@@ -63,7 +63,7 @@ curl -s localhost:8080/api/v1/inquiries/{id}          # poll until status DONE o
 curl -s localhost:8080/api/v1/inquiries/{id}/result   # download the file
 ```
 
-Needs Ollama on `localhost:11434` with model `qwen3.8-27b-32k:latest` (configurable). Full guide, limits, configuration and evaluation: [docs/inquiries.md](docs/inquiries.md).
+Needs Ollama on `localhost:11434` with model `qwen3.8-27b-32k:latest` (configurable). Full guide, limits, configuration and evaluation: [docs/inquiries.md](docs/inquiries.md). A complete run with real output: [docs/example.md](docs/example.md).
 
 ## Tests
 

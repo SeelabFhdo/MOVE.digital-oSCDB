@@ -6,6 +6,8 @@ The app checks that SQL, runs it under a restricted database role, and stores th
 
 Inquiries are **asynchronous**. You submit a question and get a job id back at once. You then poll the job until it is `DONE` or `FAILED`, and download the result. A job usually takes 5–70 s, almost all of it model time.
 
+A complete, generated walkthrough with real output is in [example.md](example.md).
+
 ## Prerequisites
 
 - OSCDB running as described in the [README](../README.md), with feeds imported.
