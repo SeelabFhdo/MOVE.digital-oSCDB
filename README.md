@@ -16,6 +16,10 @@ The `local` profile starts PostgreSQL from `compose.yaml` (db/user/password `osc
 Under `local`, both the API and PostgreSQL bind to `127.0.0.1` only.
 The API listens on `http://localhost:8080`. Swagger UI: `/swagger-ui.html`, OpenAPI: `/v3/api-docs`.
 
+### Docker Compose
+
+Everything at once (app, PostgreSQL, optionally Ollama): `docker compose -f compose.deploy.yaml up -d --build`. See [docs/deployment.md](docs/deployment.md) for the Mac and Linux/GPU variants.
+
 ## Configuration
 
 | Key | Default | Meaning |

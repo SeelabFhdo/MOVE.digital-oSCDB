@@ -1,0 +1,84 @@
+# Full OSCDB deployment: application + PostgreSQL (+ optional Ollama container).
+#
+#   This Mac (model on the host's native Ollama, uses the Apple GPU):
+#     docker compose -f compose.deploy.yaml up -d --build
+#
+#   Linux server with NVIDIA GPU (Ollama in a container, model pulled on first start):
+#     docker compose -f compose.deploy.yaml --env-file deploy/ollama-container.env --profile ollama up -d --build
+#
+# See docs/deployment.md. compose.yaml (without .deploy) is only the development database.
+name: oscdb-deploy
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: oscdb
+      POSTGRES_USER: oscdb
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-oscdb}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oscdb -d oscdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
+  app:
+    build: .
+    image: oscdb:latest
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/oscdb
+      SPRING_DATASOURCE_USERNAME: oscdb
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-oscdb}
+      OSCDB_IMPORT_DATA_DIR: /data
+      OSCDB_IMPORT_ADMIN_ENDPOINT_ENABLED: ${OSCDB_ADMIN_ENDPOINT:-true}
+      OSCDB_INQUIRY_OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
+      OSCDB_INQUIRY_MODEL: ${OSCDB_MODEL:-qwen3.8-27b-32k:latest}
+      OSCDB_INQUIRY_DATASOURCE_PASSWORD: ${INQUIRY_DB_PASSWORD:-oscdb_inquiry}
+    volumes:
+      - ${GTFS_DATA_DIR:-../Daten}:/data:ro
+    ports:
+      - "127.0.0.1:${OSCDB_PORT:-8080}:8080"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  ollama:
+    profiles: [ollama]
+    image: ollama/ollama
+    volumes:
+      - ollama:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: unless-stopped
+
+  # One-shot: downloads the model into the ollama volume (skipped quickly when it is already there).
+  ollama-pull:
+    profiles: [ollama]
+    image: ollama/ollama
+    environment:
+      OLLAMA_HOST: ollama:11434
+    entrypoint: ["ollama", "pull", "${OSCDB_MODEL:-qwen3.8:27b}"]
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+
+volumes:
+  pgdata:
+  ollama:
