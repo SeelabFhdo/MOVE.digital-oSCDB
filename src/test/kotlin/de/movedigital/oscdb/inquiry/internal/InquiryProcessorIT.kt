@@ -181,6 +181,15 @@ class InquiryProcessorIT {
     }
 
     @Test
+    fun `recovery runs once all beans exist, before scheduled polling starts`() {
+        val a = repo.create("a", OutputFormat.CSV)
+        repo.claimNext()
+        val init: org.springframework.beans.factory.SmartInitializingSingleton = worker
+        init.afterSingletonsInstantiated()
+        assertEquals(InquiryStatus.QUEUED, repo.find(a.id)!!.status)
+    }
+
+    @Test
     fun `expired jobs disappear`() {
         val old = repo.create("old", OutputFormat.CSV)
         val fresh = repo.create("fresh", OutputFormat.CSV)

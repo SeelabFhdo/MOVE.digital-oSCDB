@@ -78,6 +78,11 @@ class QueryExecutorIT {
     }
 
     @Test
+    fun `temp files and sort memory are capped for the role`() {
+        assertEquals(listOf(listOf<Any?>("1GB", "64MB")), executor.run("select current_setting('temp_file_limit') as t, current_setting('work_mem') as w").rows)
+    }
+
+    @Test
     fun `timestamptz is rendered in Berlin time`() {
         val table = executor.run(
             "select departure_at, service_date from v_departure where trip_id = 'T3' and stop_id = '101' and service_date = date '2026-01-08'",

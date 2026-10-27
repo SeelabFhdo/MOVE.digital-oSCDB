@@ -163,7 +163,7 @@ What the data cannot answer: real-time delays, fares, passenger numbers, routing
 | Question length | 2 000 characters | `oscdb.inquiry.max-question-length` |
 | Parallel jobs | 1 (others wait in the queue) | — |
 
-A restart puts jobs that were `RUNNING` back into the queue.
+A restart puts jobs that were `RUNNING` back into the queue before the worker starts.
 
 ## What the model can query
 
@@ -189,11 +189,11 @@ The model's view descriptions are generated from the `COMMENT ON` statements in 
 ## Security model
 
 - Generated SQL runs as the PostgreSQL role `oscdb_inquiry`. That role can only `SELECT` from the `inquiry_api` views and call `distance_m`; it has no access to the base tables or the job table.
-- Every query runs in a read-only transaction that is always rolled back, with a per-transaction statement timeout and a row cap.
+- Every query runs in a read-only transaction that is always rolled back, with a per-transaction statement timeout and a row cap. The role is also limited to 1 GB of temporary files (`temp_file_limit`) and 64 MB `work_mem` (`V6__inquiry_limits.sql`), so a runaway query cannot fill the disk.
 - Before running, the app rejects anything that is not a single `SELECT`/`WITH` statement. This check only produces early, readable errors; the role is the actual boundary.
 - The API has no authentication, like the rest of OSCDB. Under the `local` profile it binds to `127.0.0.1` only.
 
-The role is created by Flyway (`V5__inquiry.sql`); the app sets its password at startup from `oscdb.inquiry.datasource.password`. That needs a database user that may alter roles (true for the local Docker database). For a managed database, create the role and set its password there.
+The role is created by Flyway (`V5__inquiry.sql`); the app sets its password at startup from `oscdb.inquiry.datasource.password`. That needs a database user that may alter roles (true for the local Docker database). For a managed database, create the role, set its password and `temp_file_limit` there.
 
 ## Configuration
 

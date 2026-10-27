@@ -1,8 +1,7 @@
 package de.movedigital.oscdb.inquiry.internal
 
 import org.slf4j.LoggerFactory
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.event.EventListener
+import org.springframework.beans.factory.SmartInitializingSingleton
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 
@@ -11,7 +10,7 @@ import org.springframework.stereotype.Component
  * The schedules are active only with `oscdb.inquiry.worker-enabled=true` (see [InquirySchedulingConfig]).
  */
 @Component
-class InquiryWorker(private val repo: InquiryRepository, private val processor: InquiryProcessor) {
+class InquiryWorker(private val repo: InquiryRepository, private val processor: InquiryProcessor) : SmartInitializingSingleton {
     private val log = LoggerFactory.getLogger(InquiryWorker::class.java)
 
     /** Processes the oldest queued job; false if there was none. */
@@ -36,7 +35,12 @@ class InquiryWorker(private val repo: InquiryRepository, private val processor: 
         if (n > 0) log.info("Deleted {} expired inquiries", n)
     }
 
-    @EventListener(ApplicationReadyEvent::class)
+    /**
+     * Runs after all singletons exist (Flyway has migrated) but before scheduled polling starts, so only jobs
+     * interrupted by a previous run are requeued, never one this run has already claimed.
+     */
+    override fun afterSingletonsInstantiated() = recover()
+
     fun recover() {
         val n = repo.requeueRunning()
         if (n > 0) log.warn("Requeued {} inquiries interrupted by a restart", n)
