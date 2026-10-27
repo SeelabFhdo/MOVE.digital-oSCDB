@@ -1,3 +1,5 @@
 oscdb:
   import:
     on-startup: false
+  inquiry:
+    worker-enabled: false

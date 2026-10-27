@@ -10,3 +10,16 @@ oscdb:
     data-dir: ../Daten
     on-startup: true
     admin-endpoint-enabled: false
+  inquiry:
+    worker-enabled: true
+    ollama-url: http://localhost:11434
+    model: qwen3.8-27b-32k:latest
+    max-rows: 10000
+    statement-timeout: 30s
+    model-timeout: 120s
+    retention: 24h
+    max-question-length: 2000
+    poll-interval: 1s
+    datasource:
+      username: oscdb_inquiry
+      password: oscdb_inquiry
