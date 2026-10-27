@@ -36,6 +36,7 @@ The API listens on `http://localhost:8080`. Swagger UI: `/swagger-ui.html`, Open
 - `GET /api/v1/stops/{stopId}/departures`
 - `GET /api/v1/stations/{stationId}/departures`
 - `POST /api/v1/admin/imports` (only if enabled)
+- `POST /api/v1/inquiries`, `GET /api/v1/inquiries/{id}`, `GET /api/v1/inquiries/{id}/result` (see below)
 
 Paging: `/feeds`, `/stops` and `/stations` take `page` (0-based, default 0) and `size` (default 50, max 500) and return `{"items", "page", "size", "total"}`. `/agencies` and `/routes` are unpaged and return a plain JSON array.
 
@@ -46,6 +47,19 @@ Errors are RFC 9457 `application/problem+json`.
 Import notes: each zip is imported once (by SHA-256); a zip whose import failed is retried on the next run. A corrupt zip or one without `feed_info.txt` gets no feed row: it is only logged and listed under `failed` in the admin import report. Overlapping feeds are allowed (the newest import wins per date); the import logs a warning.
 
 Example: `curl 'localhost:8080/api/v1/stations/adelenstrasse/departures?date=2026-07-01&from=07:00'`
+
+## Natural-language inquiries
+
+Ask for data in plain language and choose the result format (`json`, `csv`, `xml`, `geojson`). A local Ollama model turns the question into read-only SQL; jobs run asynchronously:
+
+```
+curl -s -X POST localhost:8080/api/v1/inquiries -H 'Content-Type: application/json' \
+  -d '{"question": "Top 10 busiest stations on 2026-07-01", "format": "csv"}'   # → 202 with job id
+curl -s localhost:8080/api/v1/inquiries/{id}          # poll until status DONE or FAILED
+curl -s localhost:8080/api/v1/inquiries/{id}/result   # download the file
+```
+
+Needs Ollama on `localhost:11434` with model `qwen3.8-27b-32k:latest` (configurable). Full guide, limits, configuration and evaluation: [docs/inquiries.md](docs/inquiries.md).
 
 ## Tests
 

@@ -21,7 +21,9 @@ Only these views and functions exist (schema inquiry_api, already on the search 
 4. Always restrict feed_id. Use the current feed unless the question names a date or period; then use the feed valid on that date (see the feed list or v_feed_day).
 5. When reading v_service_day or v_departure, filter effective = true, except when comparing feeds or when the question names a feed.
 6. In v_departure always filter service_date. Times after midnight (departure_time like 24:30:00) belong to the previous service_date; use departure_at for real clock times. At the last stop of a trip (is_last_stop) passengers cannot board.
-7. Match stop, station and line names case-insensitively, e.g. station_name ilike '%hauptbahnhof%'. Lines are in column line (e.g. 'U47', '440').
+7. Match stop, station and line names case-insensitively on their distinctive part, e.g. station_name ilike '%reinoldikirche%'. Lines are in column line (e.g. 'U47', '440').
+   Names in the data are abbreviated: Hauptbahnhof is 'Hbf' and "Hauptbahnhof" without a city means 'Dortmund Hbf S U' (station_name ilike 'dortmund hbf%'); Bahnhof is 'Bf'; Dortmund districts start with 'DO-' (e.g. 'DO-Hörde Bf U'); the suffix ' U' marks an underground stop and ' S' a suburban rail stop.
+   To locate a place (airport, landmark) use the coordinates of stops whose name contains it, e.g. name ilike '%airport%' for Dortmund Airport.
 8. Use snake_case column names, preferably the views' own names. Add LIMIT only when the question asks for a number of results ("top 10", "next 5").
 9. Write dates as date 'YYYY-MM-DD'. Weekday of a service day: extract(isodow from service_date), 1 = Monday ... 7 = Sunday.
 10. {{formatRule}}

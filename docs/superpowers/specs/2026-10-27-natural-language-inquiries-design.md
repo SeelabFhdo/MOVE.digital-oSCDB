@@ -1,7 +1,7 @@
 # OSCDB – Natural-language inquiries (design)
 
 Date: 2026-10-27
-Status: draft, awaiting approval (builder check done)
+Status: implemented (2026-10-27)
 Builds on: `2026-10-26-gtfs-rest-api-design.md`
 
 ## Intent
@@ -266,6 +266,27 @@ output mode *(builder's call)*.
 - **Eval set** (manual, against real Ollama, not in `mvn test`): ~15 example
   questions across the four kinds with expected checks (e.g. row count,
   known value). This is the measure of success for prompt quality.
+
+## Accepted deviations
+
+Recorded during implementation.
+
+- Ollama's JSON output mode is unavailable for both installed models
+  (`structured output is unavailable`). The JSON object is requested by the
+  prompt and extracted leniently (code fences and `<think>` blocks stripped);
+  unparsable answers count as a failed attempt and go through the repair retry.
+- `effective` is computed by the view `v_feed_day` (winning feed per date)
+  instead of a stored column that is recomputed after each import. Same
+  behavior, no stale state.
+- `v_feed` has no `is_current` column: the database clock and the app clock
+  can differ, so the prompt states the current feed from `FeedLookup.current()`.
+- Route type labels reuse the app's existing labels (`tram`, `subway`, `rail`,
+  `bus`, `monorail`, `other`).
+- The role password is set by the app at startup instead of a Flyway
+  placeholder, so a password change needs no migration.
+- After the first evaluation, the prompt gained hints about abbreviated names
+  (`Hbf`, `Bf`, `DO-`, ` U`/` S` suffixes) and about locating places through
+  stop names.
 
 ## Left to the builder
 

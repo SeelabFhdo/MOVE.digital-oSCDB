@@ -40,6 +40,13 @@ class PromptBuilderIT {
     }
 
     @Test
+    fun `prompt explains abbreviated stop names and how to locate places`() {
+        val p = prompts.systemPrompt(OutputFormat.CSV)
+        assertContains(p, "'Dortmund Hbf S U'")
+        assertContains(p, "'%airport%'")
+    }
+
+    @Test
     fun `geojson prompt asks for coordinates`() {
         assertContains(prompts.systemPrompt(OutputFormat.GEOJSON), "lat and lon")
         assertFalse("lat and lon" in prompts.systemPrompt(OutputFormat.CSV))

@@ -1,0 +1,17 @@
+# format|question — one inquiry per line; lines starting with # are ignored
+csv|Which lines are operated by DSW21?
+json|Next 10 departures at Dortmund Hauptbahnhof on 2026-07-01 after 08:00
+csv|Departures of line U47 at Westfalenhallen on 2026-06-15 between 17:00 and 18:00
+json|Which stations does line U43 serve, in order?
+csv|How many trips does line 440 run on a typical Saturday?
+csv|Top 10 busiest stations by number of departures on 2026-07-01
+json|How many departures are there on 2026-07-04 per route type?
+csv|When is the last departure of the U41 from Hauptbahnhof on 2026-07-03?
+csv|Compare the number of trips on a Monday between the first timetable of 2025 and the latest timetable
+json|Which lines exist in the latest timetable that did not exist in the first timetable of 2024?
+csv|How did the number of stops change across all timetables?
+geojson|All stops within 300 m of 51.5178, 7.4593
+geojson|Stations of line U42 with coordinates
+xml|The 5 stations closest to Dortmund Airport
+json|How late is the U47 right now?
+csv|Which stations have more than 4 platforms?
