@@ -22,6 +22,7 @@ internal class JdbcScheduleLoader(private val network: NetworkLookup) : Schedule
         val copy = PgCopy(connection)
         loadCalendar(feedId, source, copy)
         loadCalendarDates(feedId, source, copy)
+        connection.prepareStatement("select fill_service_days(?)").use { it.setInt(1, feedId); it.execute() }
         loadTrips(feedId, source, copy)
         val lastStops = loadStopTimes(feedId, source, copy)
         deriveHeadsigns(feedId, lastStops, connection, copy)
