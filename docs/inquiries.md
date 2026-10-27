@@ -60,6 +60,71 @@ ask() {  # usage: ask <format> <question>
 ask geojson "All stops within 300 m of 51.5178, 7.4593" > stops.geojson
 ```
 
+## Worked example: a question and its answer
+
+A real run against all 19 DSW21 feeds, recorded on 2026-10-27.
+
+**The question**
+
+```bash
+curl -s -X POST localhost:8080/api/v1/inquiries \
+  -H 'Content-Type: application/json' \
+  -d '{"question": "When do the last three departures of line U47 leave Dortmund Hbf on 2026-07-01, and where do they go?", "format": "json"}'
+```
+
+```json
+{"id":"6b5c93d5-23d2-4b15-bc65-9f4327a0aab6","status":"QUEUED","queuePosition":1,"meta":null,…}
+```
+
+**The job, once it is done** (`GET /api/v1/inquiries/6b5c93d5-…`, 32 s later)
+
+```json
+{
+  "id": "6b5c93d5-23d2-4b15-bc65-9f4327a0aab6",
+  "status": "DONE",
+  "createdAt": "2026-10-27T10:43:21.520287Z",
+  "startedAt": "2026-10-27T10:43:22.161358Z",
+  "finishedAt": "2026-10-27T10:43:53.885513Z",
+  "error": null,
+  "meta": {
+    "sql": "select departure_at, departure_time, headsign, stop_name from v_departure where feed_id = 19 and effective and service_date = date '2026-07-01' and line = 'U47' and station_name ilike 'dortmund hbf%' and not is_last_stop order by departure_at desc limit 3",
+    "previousSql": null,
+    "assumptions": [
+      "feed 19 is the current feed and covers 2026-07-01",
+      "Dortmund Hbf refers to station_name starting with 'dortmund hbf'",
+      "last three departures means the three latest departure times on that service day"
+    ],
+    "feeds": [19],
+    "rowCount": 3,
+    "truncated": false,
+    "model": "qwen3.8-27b-32k:latest",
+    "modelMillis": 30929,
+    "queryMillis": 737,
+    "attempts": 1
+  }
+}
+```
+
+**The answer** (`GET /api/v1/inquiries/6b5c93d5-…/result`, headers `OSCDB-Row-Count: 3`, `OSCDB-Truncated: false`; `meta` shortened here, it repeats the job's `meta`)
+
+```json
+{
+  "meta": { "sql": "select departure_at, …", "assumptions": ["…"], "feeds": [19], "rowCount": 3, "truncated": false, … },
+  "rows": [
+    {"departure_at": "2026-07-02T01:39:36+02:00", "departure_time": "25:39:36", "headsign": "Hafen U",          "stop_name": "Dortmund Hbf S U"},
+    {"departure_at": "2026-07-02T01:05:12+02:00", "departure_time": "25:05:12", "headsign": "DO-Stadthaus S U", "stop_name": "Dortmund Hbf S U"},
+    {"departure_at": "2026-07-02T00:50:12+02:00", "departure_time": "24:50:12", "headsign": "Aplerbeck U",      "stop_name": "Dortmund Hbf S U"}
+  ]
+}
+```
+
+How to read it:
+
+- **The model mapped the words to the data.** "Dortmund Hbf" became `station_name ilike 'dortmund hbf%'` (the stop is called `Dortmund Hbf S U`). "Leave" became `not is_last_stop`, so trains that end at the Hbf are excluded.
+- **`assumptions` lists every interpretation.** Check them before you use the answer. If one is wrong, ask again with a more precise question.
+- **Night services belong to the day they start.** The last U47 of the 2026-07-01 service day leaves at `25:39:36` GTFS time. That is 01:39 on 2026-07-02, as `departure_at` shows.
+- **The time is almost all model time:** 30.9 s for the model, 0.7 s for the query.
+
 ## API
 
 ### `POST /api/v1/inquiries`
