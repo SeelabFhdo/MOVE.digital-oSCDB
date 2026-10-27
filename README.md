@@ -16,9 +16,17 @@ The `local` profile starts PostgreSQL from `compose.yaml` (db/user/password `osc
 Under `local`, both the API and PostgreSQL bind to `127.0.0.1` only.
 The API listens on `http://localhost:8080`. Swagger UI: `/swagger-ui.html`, OpenAPI: `/v3/api-docs`.
 
-### Docker Compose
+### With Docker (deployment)
 
-Everything at once (app, PostgreSQL, optionally Ollama): `docker compose -f compose.deploy.yaml up -d --build`. See [docs/deployment.md](docs/deployment.md) for the Mac and Linux/GPU variants.
+App and PostgreSQL in Docker, with the GTFS zips in `../Daten` and Ollama running natively for inquiries:
+
+```
+docker compose -f compose.deploy.yaml up -d --build
+docker compose -f compose.deploy.yaml logs -f app      # wait for "Import finished"
+curl -s localhost:8080/api/v1/feeds/current
+```
+
+Step-by-step guide for Mac and Linux/GPU servers, plain `docker run`, operations, settings and troubleshooting: [docs/deployment.md](docs/deployment.md).
 
 ## Configuration
 

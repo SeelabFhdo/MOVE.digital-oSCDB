@@ -3,3 +3,6 @@ target/
 *.iml
 .DS_Store
 .superpowers/
+
+# local deployment settings (passwords)
+.env
